@@ -35,6 +35,17 @@ const testIndex = budgetStore.index("testIndex")
 //  add data to the database
 budgetStore.add({ ID: "1", testKeyPath: "Hello World!"})
 budgetStore.add({ ID: "2", testKeyPath: "test data"})
+
+//query item by keyPath
+const getRequest = budgetStore.get("2");
+getRequest.onsuccess = () => {
+    console.log(getRequest.result)
+}
+//query item(s) by index
+const getRequestIndex = testIndex.getAll("Hello World!");
+getRequestIndex.onsuccess = () => {
+    console.log(getRequestIndex.result);
+}
 }
 
 //  update data with cursors
