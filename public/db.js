@@ -60,15 +60,31 @@ const budgetStore = transaction.objectStore("BudgetTracker");
 const getAll = budgetStore.getAll();
 
 getAll.onsuccess = function() {
-    //bulk add
-    fetch("/api/transaction/bulk", {
-        method: "POST",
-        body: JSON.stringify(getAll.result),
-        headers: {
-            Accept: 'application/json, text/plain, */*',
-            'Content-Type': 'application/json',
-          },
-    }).then((response) => response.json())
+    //if there are items in the objectStore, bulk add them once back online
+    if ( getAll.result.length > 0 ) {
+
+        fetch("/api/transaction/bulk", {
+            method: "POST",
+            body: JSON.stringify(getAll.result),
+            headers: {
+                Accept: 'application/json, text/plain, */*',
+                'Content-Type': 'application/json',
+            },
+        }).then((response) => response.json())
+        .then((res) => {
+            if (res.length !== 0) {
+             // Open another transaction to objectStore with the ability to read and write
+             transaction = db.transaction(['BudgetTracker'], 'readwrite');
+
+             // Assign the current store to a variable
+             const currentStore = transaction.objectStore('BudgetTracker');
+ 
+             // Clear existing entries because our bulk add was successful
+             currentStore.clear();
+             console.log('Clearing...');
+            }
+        })
+    }
 }
 }
 
