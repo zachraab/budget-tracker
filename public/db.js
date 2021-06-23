@@ -19,8 +19,6 @@ request.onupgradeneeded = ({ target }) => {
         keyPath: "ID" 
       });
       }
-      //  create indexes - so we can query the data
-    budgetStore.createIndex("testIndex", "testKeyPath")
 };
 
 request.onsuccess = () => {
@@ -29,28 +27,6 @@ db = request.result
 if (navigator.onLine)  {
     console.log("Back online!");
     checkDatabase();
-}
-
-//give access to db with readwrite privileges 
-const transaction = db.transaction(["BudgetTracker"], "readwrite");
-//grab objectStore
-const budgetStore = transaction.objectStore("BudgetTracker");
-//grab the index
-const testIndex = budgetStore.index("testIndex")
-
-//  add data to the database
-budgetStore.add({ ID: "1", testKeyPath: "Hello World!"})
-budgetStore.add({ ID: "2", testKeyPath: "test data"})
-
-//query item by keyPath
-const getRequest = budgetStore.get("2");
-getRequest.onsuccess = () => {
-    console.log(getRequest.result)
-}
-//query item(s) by index
-const getRequestIndex = testIndex.getAll("Hello World!");
-getRequestIndex.onsuccess = () => {
-    console.log(getRequestIndex.result);
 }
 }
 
@@ -72,9 +48,29 @@ const saveRecord = (record) => {
     store.add(record)
 }
 
-
-
 // create function that checks and reads the db and then makes a POST call to transaction list with that data, then clear out the objectStore
+function checkDatabase() {
+    console.log("checking database...")
+
+//give access to db with readwrite privileges 
+let transaction = db.transaction(["BudgetTracker"], "readwrite");
+//grab objectStore
+const budgetStore = transaction.objectStore("BudgetTracker");
+//get all records from budgetStore
+const getAll = budgetStore.getAll();
+
+getAll.onsuccess = function() {
+    //bulk add
+    fetch("/api/transaction/bulk", {
+        method: "POST",
+        body: JSON.stringify(getAll.result),
+        headers: {
+            Accept: 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+          },
+    }).then((response) => response.json())
+}
+}
 
 // event listener to check for app coming back online
 window.addEventListener('online', checkDatabase);
