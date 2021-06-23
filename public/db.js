@@ -48,4 +48,23 @@ getRequestIndex.onsuccess = () => {
 }
 }
 
-//  update data with cursors
+//handle errors to enhance user experience
+
+//function that saves data when app is offline
+const saveRecord = (record) => {
+    console.log("saving record offline")
+    //create transaction 
+    const transaction = db.transaction(["BudgetTracker"], "readwrite");
+
+    //access object store
+    const store = transaction.objectStore("BudgetTracker")
+
+    //add records to the storage
+    store.add(record)
+}
+
+//check if app is online before reading db, then call function that reads db
+
+// create function that checks and reads the db and then makes a POST call to transaction list with that data, then clear out the objectStore
+
+// event listener to check for app coming back online
